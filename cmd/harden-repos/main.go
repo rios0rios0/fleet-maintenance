@@ -26,6 +26,14 @@ const (
 	tableWidth           = 155
 )
 
+// Logrus structured-logging field keys reused across phases.
+const (
+	fieldRepo    = "repo"
+	fieldApplied = "applied"
+	fieldAction  = "action"
+	fieldPhase   = "phase"
+)
+
 func main() {
 	var (
 		phase              int
@@ -143,16 +151,16 @@ func runPhase2(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplyRepositorySettingsListeners{
 		OnChange: func(change commands.ApplyRepositorySettingsChange) {
 			logger.WithFields(logger.Fields{
-				"repo":     change.RepositoryName,
-				"applied":  change.Applied,
-				"new_wiki": change.NewSettings.HasWiki,
+				fieldRepo:    change.RepositoryName,
+				fieldApplied: change.Applied,
+				"new_wiki":   change.NewSettings.HasWiki,
 			}).Info("applied repo settings")
 		},
 		OnSuccess: func(changed, compliant int) {
 			logger.WithFields(logger.Fields{"changed": changed, "compliant": compliant}).Info("phase 2 complete")
 		},
 		OnError: func(name string, err error) {
-			logger.WithError(err).WithField("repo", name).Error("phase 2 error")
+			logger.WithError(err).WithField(fieldRepo, name).Error("phase 2 error")
 		},
 	})
 }
@@ -171,20 +179,20 @@ func runPhase3(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplySecuritySettingsListeners{
 		OnChange: func(change commands.ApplySecuritySettingsChange) {
 			logger.WithFields(logger.Fields{
-				"repo":    change.RepositoryName,
-				"action":  change.Action,
-				"applied": change.Applied,
+				fieldRepo:    change.RepositoryName,
+				fieldAction:  change.Action,
+				fieldApplied: change.Applied,
 			}).Info("applied security setting")
 		},
 		OnSkip: func(name, reason string) {
-			logger.WithFields(logger.Fields{"repo": name, "reason": reason}).Info("skipped")
+			logger.WithFields(logger.Fields{fieldRepo: name, "reason": reason}).Info("skipped")
 		},
 		OnSuccess: func(secretScanning, dependabot int) {
 			logger.WithFields(logger.Fields{"secret_scanning": secretScanning, "dependabot": dependabot}).
 				Info("phase 3 complete")
 		},
 		OnError: func(name string, err error) {
-			logger.WithError(err).WithField("repo", name).Error("phase 3 error")
+			logger.WithError(err).WithField(fieldRepo, name).Error("phase 3 error")
 		},
 	})
 }
@@ -203,19 +211,19 @@ func runPhase4(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplyBranchProtectionListeners{
 		OnChange: func(change commands.ApplyBranchProtectionChange) {
 			logger.WithFields(logger.Fields{
-				"repo":    change.RepositoryName,
-				"action":  change.Action,
-				"applied": change.Applied,
+				fieldRepo:    change.RepositoryName,
+				fieldAction:  change.Action,
+				fieldApplied: change.Applied,
 			}).Info("applied branch protection")
 		},
 		OnSkip: func(name, reason string) {
-			logger.WithFields(logger.Fields{"repo": name, "reason": reason}).Info("skipped")
+			logger.WithFields(logger.Fields{fieldRepo: name, "reason": reason}).Info("skipped")
 		},
 		OnSuccess: func(changed, skipped int) {
 			logger.WithFields(logger.Fields{"changed": changed, "skipped": skipped}).Info("phase 4 complete")
 		},
 		OnError: func(name string, err error) {
-			logger.WithError(err).WithField("repo", name).Error("phase 4 error")
+			logger.WithError(err).WithField(fieldRepo, name).Error("phase 4 error")
 		},
 	})
 }
@@ -235,10 +243,10 @@ func runPhase5(ctx context.Context, set commandSet, owner string) {
 		OnSuccess: func(diffs []commands.ComplianceDiff, reposChanged int) {
 			for _, d := range diffs {
 				logger.WithFields(logger.Fields{
-					"repo":   d.Repository,
-					"field":  d.Field,
-					"before": d.Before,
-					"after":  d.After,
+					fieldRepo: d.Repository,
+					"field":   d.Field,
+					"before":  d.Before,
+					"after":   d.After,
 				}).Info("changed")
 			}
 			logger.WithField("repos_changed", reposChanged).Info("phase 5 complete")
@@ -257,9 +265,9 @@ func runDryRun(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplyRepositorySettingsListeners{
 		OnChange: func(change commands.ApplyRepositorySettingsChange) {
 			logger.WithFields(logger.Fields{
-				"repo":   change.RepositoryName,
-				"phase":  phaseApplyRepo,
-				"action": "repo_settings",
+				fieldRepo:   change.RepositoryName,
+				fieldPhase:  phaseApplyRepo,
+				fieldAction: "repo_settings",
 			}).Info("would apply")
 		},
 		OnSuccess: func(_, _ int) {},
@@ -273,9 +281,9 @@ func runDryRun(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplySecuritySettingsListeners{
 		OnChange: func(change commands.ApplySecuritySettingsChange) {
 			logger.WithFields(logger.Fields{
-				"repo":   change.RepositoryName,
-				"phase":  phaseApplySecurity,
-				"action": change.Action,
+				fieldRepo:   change.RepositoryName,
+				fieldPhase:  phaseApplySecurity,
+				fieldAction: change.Action,
 			}).Info("would apply")
 		},
 		OnSuccess: func(_, _ int) {},
@@ -289,9 +297,9 @@ func runDryRun(ctx context.Context, set commandSet, owner, repoFilter string) {
 	}, commands.ApplyBranchProtectionListeners{
 		OnChange: func(change commands.ApplyBranchProtectionChange) {
 			logger.WithFields(logger.Fields{
-				"repo":   change.RepositoryName,
-				"phase":  phaseApplyProtection,
-				"action": change.Action,
+				fieldRepo:   change.RepositoryName,
+				fieldPhase:  phaseApplyProtection,
+				fieldAction: change.Action,
 			}).Info("would apply")
 		},
 		OnSuccess: func(_, _ int) {},

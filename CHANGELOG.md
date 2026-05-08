@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Changed
+
+- bumped the Go directive in `go.mod` from `1.26.2` to `1.26.3` and updated the indirect dependency `golang.org/x/sys` from `v0.43.0` to `v0.44.0`
+
 ## [0.3.0] - 2026-04-28
 
 ### Added
