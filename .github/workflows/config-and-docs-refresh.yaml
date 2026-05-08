@@ -155,8 +155,8 @@ jobs:
           MAX_TURNS: ${{ inputs.max_turns || '50' }}
         run: |
           set -euo pipefail
-          git config --global user.name 'rios0rios0-bot'
-          git config --global user.email 'rios0rios0-bot@users.noreply.github.com'
+          git config --global user.name 'config-bot'
+          git config --global user.email 'config-bot@users.noreply.github.com'
 
           PROMPT_CONTENT="$(cat "${GITHUB_WORKSPACE}/scripts/refresh_config_and_docs_prompt.md")"
           WORK_DIR="$(mktemp -d)"
@@ -289,10 +289,16 @@ jobs:
               continue
             fi
 
-            if gh pr view "${REFRESH_BRANCH}" --repo "${target_repo}" --json number >/dev/null 2>&1; then
-              pr_num=$(gh pr view "${REFRESH_BRANCH}" --repo "${target_repo}" --json number --jq '.number')
-              echo "PR #${pr_num} already exists; force-push updated its diff."
-              prs_updated+=("${target_repo}#${pr_num}")
+            # Filter by `--state open` because `gh pr view <branch>` matches
+            # PRs in any state (including merged/closed). Without this filter,
+            # a previously-merged PR for this branch causes the workflow to
+            # log "already exists; force-push updated its diff" and skip
+            # `gh pr create`, leaving the new commit stranded on a branch
+            # with no open PR.
+            existing_pr=$(gh pr list --repo "${target_repo}" --head "${REFRESH_BRANCH}" --state open --json number --jq '.[0].number // empty')
+            if [ -n "${existing_pr}" ]; then
+              echo "PR #${existing_pr} already exists; force-push updated its diff."
+              prs_updated+=("${target_repo}#${existing_pr}")
             else
               if pr_url=$(gh pr create \
                   --repo "${target_repo}" \
