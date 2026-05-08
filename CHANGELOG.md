@@ -16,6 +16,15 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Changed
+
+- renamed the git committer identity used by the refresh workflow from `rios0rios0-bot` to `config-bot` so the bot identity reflects this project's scope rather than the org
+
+### Fixed
+
+- fixed the per-repo "PR already exists" check in `.github/workflows/config-and-docs-refresh.yaml` to filter by `--state open`; `gh pr view <branch>` previously matched merged/closed PRs as well, so once a refresh PR was merged the next run logged `prs_updated` and skipped `gh pr create`, leaving the new force-pushed commit stranded on a branch with no open PR (observed on `rios0rios0/guide` where PR #55 was merged and the 2026-05-04 run force-pushed `f3ae5d3` without opening a new PR)
+- wrapped the new `gh pr list` call in `.github/workflows/config-and-docs-refresh.yaml` in an `if !` conditional so a transient `gh` failure (auth, network, permissions) is captured as `failed+=("pr-list: ${target_repo}")` and the per-repo cleanup runs, instead of `set -euo pipefail` aborting the whole batch mid-loop on a bare command substitution
+
 ## [0.3.1] - 2026-05-08
 
 ### Changed
