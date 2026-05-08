@@ -1,6 +1,6 @@
 module github.com/rios0rios0/config-automation
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/google/go-github/v66 v66.0.0
