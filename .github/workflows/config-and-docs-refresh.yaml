@@ -294,8 +294,17 @@ jobs:
             # a previously-merged PR for this branch causes the workflow to
             # log "already exists; force-push updated its diff" and skip
             # `gh pr create`, leaving the new commit stranded on a branch
-            # with no open PR.
-            existing_pr=$(gh pr list --repo "${target_repo}" --head "${REFRESH_BRANCH}" --state open --json number --jq '.[0].number // empty')
+            # with no open PR. The call is wrapped in `if !` because under
+            # `set -e` a transient `gh` failure (auth/network/permissions)
+            # in a bare command substitution would abort the whole batch
+            # mid-loop, bypassing the `failed+=()` bookkeeping and the
+            # per-repo cleanup; the explicit conditional keeps the failure
+            # local to this repo.
+            if ! existing_pr=$(gh pr list --repo "${target_repo}" --head "${REFRESH_BRANCH}" --state open --json number --jq '.[0].number // empty' 2>/dev/null); then
+              failed+=("pr-list: ${target_repo}")
+              rm -rf "${target}"
+              continue
+            fi
             if [ -n "${existing_pr}" ]; then
               echo "PR #${existing_pr} already exists; force-push updated its diff."
               prs_updated+=("${target_repo}#${existing_pr}")
