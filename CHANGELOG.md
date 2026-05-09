@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-09
+
 ### Changed
 
 - renamed the git committer identity used by the refresh workflow from `rios0rios0-bot` to `config-bot` so the bot identity reflects this project's scope rather than the org
