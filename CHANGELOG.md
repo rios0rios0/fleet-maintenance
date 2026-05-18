@@ -18,6 +18,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Changed
 
+- refreshed `.github/copilot-instructions.md` to remove the non-functional `make run ARGS='...'` example (the Makefile's `run` target does not interpolate `$(ARGS)`)
 - renamed the git committer identity used by the refresh workflow from `rios0rios0-bot` to `config-bot` so the bot identity reflects this project's scope rather than the org
 
 ### Fixed

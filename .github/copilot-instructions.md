@@ -54,7 +54,6 @@ make build                          # compile bin/harden-repos
 make test                           # go test -race -tags=unit ./...
 make lint                           # golangci-lint run ./...
 make sast                           # full SAST suite via rios0rios0/pipelines
-make run ARGS='--phase 1 --repo autobump'
 go test -tags=unit -run TestAuditRepositoriesCommand ./internal/domain/commands/
 ```
 
